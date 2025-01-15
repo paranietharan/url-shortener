@@ -13,3 +13,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+
+jwt:
+  secret: b48c98ddbb095088065774a7e33cd977e63e843e30a0a510e69eaf5dcc924fccc4e7cf3241f1bbb3659cc457f08b68985f24c0ec51062e75e28c9ce0eff8a05e
+  expiration: 172800000
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+    com:
+      url:
+        shortener: DEBUG

@@ -8,7 +8,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -30,6 +32,26 @@ public class UrlMappingService {
         return toUrlMappingDto(savedUrlMapping);
     }
 
+    private String generateShortUrl() {
+        String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random = new Random();
+        StringBuilder shortUrl = new StringBuilder(8);
+
+        for(int i=0; i < 8; i++){
+            shortUrl.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        }
+        return shortUrl.toString();
+    }
+
+    public List<UrlMappingDto> getUrlsByUser(User user) {
+        List<UrlMapping> urls = urlMappingRepository.findByUser(user);
+
+        return urls.stream()
+                .map(this::toUrlMappingDto)
+                .collect(Collectors.toList());
+    }
+
+    // method to UrlMapping from UrlMappingDto
     private UrlMappingDto toUrlMappingDto(UrlMapping savedUrlMapping) {
         UrlMappingDto urlMappingDto = new UrlMappingDto();
 
@@ -40,16 +62,5 @@ public class UrlMappingService {
         urlMappingDto.setClickCount(savedUrlMapping.getClickCount());
 
         return urlMappingDto;
-    }
-
-    private String generateShortUrl() {
-        String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        Random random = new Random();
-        StringBuilder shortUrl = new StringBuilder(8);
-
-        for(int i=0; i < 8; i++){
-            shortUrl.append(alphabet.charAt(random.nextInt(alphabet.length())));
-        }
-        return shortUrl.toString();
     }
 }

@@ -1,20 +1,25 @@
 package com.url.shortener.service;
 
+import com.url.shortener.dto.ClickEventDTO;
 import com.url.shortener.dto.UrlMappingDto;
 import com.url.shortener.model.UrlMapping;
 import com.url.shortener.model.User;
+import com.url.shortener.repository.ClickEventRepository;
 import com.url.shortener.repository.UrlMappingRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
 public class UrlMappingService {
 
     private UrlMappingRepository urlMappingRepository;
+    private ClickEventRepository clickEventRepository;
 
     public UrlMappingDto createShortUrl(String oringinalUrl, User user) {
         String shortUrl = generateShortUrl();
@@ -30,6 +35,26 @@ public class UrlMappingService {
         return toUrlMappingDto(savedUrlMapping);
     }
 
+    private String generateShortUrl() {
+        String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random = new Random();
+        StringBuilder shortUrl = new StringBuilder(8);
+
+        for(int i=0; i < 8; i++){
+            shortUrl.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        }
+        return shortUrl.toString();
+    }
+
+    public List<UrlMappingDto> getUrlsByUser(User user) {
+        List<UrlMapping> urls = urlMappingRepository.findByUser(user);
+
+        return urls.stream()
+                .map(this::toUrlMappingDto)
+                .collect(Collectors.toList());
+    }
+
+    // method to UrlMapping from UrlMappingDto
     private UrlMappingDto toUrlMappingDto(UrlMapping savedUrlMapping) {
         UrlMappingDto urlMappingDto = new UrlMappingDto();
 
@@ -42,14 +67,22 @@ public class UrlMappingService {
         return urlMappingDto;
     }
 
-    private String generateShortUrl() {
-        String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        Random random = new Random();
-        StringBuilder shortUrl = new StringBuilder(8);
+    public List<ClickEventDTO> getClickEventsByDate(String shortUrl, LocalDateTime start, LocalDateTime end) {
+        UrlMapping urlMapping = urlMappingRepository.findByShortUrl(shortUrl);
 
-        for(int i=0; i < 8; i++){
-            shortUrl.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        if(urlMapping != null){
+            return clickEventRepository.findByUrlMappingAndClickDateBetween(urlMapping, start, end).stream()
+                    .collect(Collectors.groupingBy(clickEvent -> clickEvent.getClickDate().toLocalDate(), Collectors.counting()))
+                    .entrySet().stream()
+                    .map(entry -> {
+                        ClickEventDTO clickEventDTO = new ClickEventDTO();
+                        clickEventDTO.setClickDate(entry.getKey());
+                        clickEventDTO.setCount(entry.getValue());
+                        return clickEventDTO;
+                    })
+                    .collect(Collectors.toList());
         }
-        return shortUrl.toString();
+
+        return null;
     }
 }

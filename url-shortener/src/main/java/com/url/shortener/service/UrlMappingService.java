@@ -2,13 +2,17 @@ package com.url.shortener.service;
 
 import com.url.shortener.dto.ClickEventDTO;
 import com.url.shortener.dto.UrlMappingDto;
+import com.url.shortener.model.ClickEvent;
 import com.url.shortener.model.UrlMapping;
 import com.url.shortener.model.User;
 import com.url.shortener.repository.ClickEventRepository;
 import com.url.shortener.repository.UrlMappingRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpHeaders;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
@@ -84,5 +88,23 @@ public class UrlMappingService {
         }
 
         return null;
+    }
+
+    public UrlMapping getUrlByShortUrl(String shortUrl) {
+        UrlMapping urlMapping = urlMappingRepository.findByShortUrl(shortUrl);
+        if (urlMapping != null) {
+            urlMapping.setClickCount(urlMapping.getClickCount() + 1);
+            urlMappingRepository.save(urlMapping);
+
+            // Record the click event
+            ClickEvent clickEvent = new ClickEvent();
+            clickEvent.setUrlMapping(urlMapping);
+            clickEvent.setClickDate(LocalDateTime.now());
+            clickEventRepository.save(clickEvent);
+
+            return urlMapping;
+        } else {
+            return null;
+        }
     }
 }

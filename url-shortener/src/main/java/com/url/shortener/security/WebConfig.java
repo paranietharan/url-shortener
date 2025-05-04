@@ -54,7 +54,7 @@ public class WebConfig {
                 .authorizeHttpRequests(auth -> auth.
                         requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/urls/**").authenticated()
-                        .requestMatchers("/{shortUrl}").permitAll()
+                        .requestMatchers("/r/{shortUrl}").permitAll()
                         .anyRequest().authenticated()
                 );
         httpSecurity.authenticationProvider(authenticationProvider());

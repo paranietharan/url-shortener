@@ -15,15 +15,18 @@ public class RedirectController {
 
     private UrlMappingService urlMappingService;
 
-    @GetMapping("/{shortUrl}")
-    public ResponseEntity<Void> redirect (@PathVariable String shortUrl){
+    @GetMapping("/r/{shortUrl}")
+    public ResponseEntity<Void> redirect(@PathVariable String shortUrl) {
         UrlMapping urlMapping = urlMappingService.getUrlByShortUrl(shortUrl);
-        if(urlMapping != null){
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("Location", urlMapping.getOringinalUrl());
-            return ResponseEntity.status(302).headers(httpHeaders).build();
-        } else {
-            return ResponseEntity.notFound().build();
+        if (urlMapping != null) {
+            String originalUrl = urlMapping.getOringinalUrl();
+            if (!originalUrl.startsWith("http://") && !originalUrl.startsWith("https://")) {
+                originalUrl = "http://" + originalUrl;
+            }
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Location", originalUrl);
+            return ResponseEntity.status(302).headers(headers).build();
         }
+        return ResponseEntity.notFound().build();
     }
 }
